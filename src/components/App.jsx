@@ -1,5 +1,8 @@
 import { Component } from 'react';
 import { nanoid } from 'nanoid';
+import { ContactList } from './ContactList/ContactList';
+import { Filter } from './Filter/Filter';
+import { ContactForm } from './ContactForm/ContactForm';
 
 export class App extends Component {
   state = {
@@ -10,57 +13,57 @@ export class App extends Component {
       { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
     ],
     filter: '',
+    name: '',
     number: '',
   };
 
+  onDelete = id => {
+    this.setState(prevState => {
+      return {
+        contacts: prevState.contacts.filter(contact => contact.id !== id),
+      };
+    });
+  };
+
+  addContact = ({ name, number }) => {
+    const { contacts } = this.state;
+    const newContact = { id: nanoid(), name, number };
+
+    contacts.find(contact => contact.name === name)
+      ? alert(`${name} is already in the contact list`)
+      : this.setState(({ contacts }) => ({
+          contacts: [newContact, ...contacts],
+        }));
+  };
+
+  getVisibleContacts = () => {
+    const { filter, contacts } = this.state;
+    const normalizedFilter = filter.toLowerCase();
+
+    return contacts.filter(({ name }) =>
+      name.toLowerCase().includes(normalizedFilter)
+    );
+  };
+
+  changeFilter = e => {
+    this.setState({ filter: e.target.value });
+  };
+
   render() {
+    const { filter } = this.state;
+
+    const visibleContacts = this.getVisibleContacts();
+
     return (
-      <>
-        {/* <h1>Phonebook</h1>
-  <ContactForm ... />
-
-  <h2>Contacts</h2>
-  <Filter ... />
-  <ContactList ... /> */}
-
-        <h1>Phone Book</h1>
-        <label>Name</label>
-        <input
-          type="text"
-          name="name"
-          placeholder="Enter name"
-          pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
-          title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
-          required
-        />
-        <label>Phone</label>
-        <input
-          type="tel"
-          name="number"
-          placeholder="Enter phone number"
-          pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
-          title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
-          required
-        />
-
-        <button type="button">Add contact</button>
+      <div>
+        <h1>Phonebook</h1>
+        <ContactForm onSubmit={this.addContact} />
 
         <h2>Contacts</h2>
-        <p>Find contacts by name</p>
-        <input
-          type="text"
-          name="name"
-          placeholder="Enter name"
-          pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
-          title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
-          required
-        />
-        <ul>
-          <li>
-            Имя<button>Удалить</button>
-          </li>
-        </ul>
-      </>
+        <Filter value={filter} onChange={this.changeFilter} />
+
+        <ContactList contacts={visibleContacts} onDelete={this.onDelete} />
+      </div>
     );
   }
 }
